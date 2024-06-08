@@ -11,6 +11,18 @@ from langchain.prompts import (
 import os
 
 load_dotenv()
+# 从环境变量中获取 API 密钥
+fireworks_api_key = os.getenv('FIREWORKS_API_KEY')
+anthropic_api_key = os.getenv('ANTHROPIC_API_KEY')
+huggingfacehub_api_token = os.getenv('HUGGINGFACEHUB_API_TOKEN')
+langchain_hub_api_key = os.getenv('LANGCHAIN_HUB_API_KEY')
+
+# 示例：在 Streamlit 应用中显示这些密钥
+st.write(f"Fireworks API Key: {fireworks_api_key}")
+st.write(f"Anthropic API Key: {anthropic_api_key}")
+st.write(f"Hugging Face Hub API Token: {huggingfacehub_api_token}")
+st.write(f"Langchain Hub API Key: {langchain_hub_api_key}")
+
 st.title("个人求职助手")
 llm = ChatFireworks(model="accounts/fireworks/models/llama-v3-70b-instruct",
                     temperature=0.3,
