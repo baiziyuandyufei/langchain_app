@@ -8,23 +8,14 @@ from langchain.prompts import (
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate
 )
-
-load_dotenv()
 import os
 
-fireworks_api_key = os.getenv('FIREWORKS_API_KEY')
-anthropic_api_key = os.getenv('ANTHROPIC_API_KEY')
-huggingfacehub_api_token = os.getenv('HUGGINGFACEHUB_API_TOKEN')
-langchain_hub_api_key = os.getenv('LANGCHAIN_HUB_API_KEY')
-
-# Now you can use these variables in your application
-print(f"Fireworks API Key: {fireworks_api_key}")
-print(f"Anthropic API Key: {anthropic_api_key}")
-print(f"Hugging Face Hub API Token: {huggingfacehub_api_token}")
-print(f"Langchain Hub API Key: {langchain_hub_api_key}")
-
+load_dotenv()
 st.title("个人求职助手")
-llm = ChatFireworks(model="accounts/fireworks/models/llama-v3-70b-instruct",temperature=0.3,top_p=0.3)
+llm = ChatFireworks(model="accounts/fireworks/models/llama-v3-70b-instruct",
+                    temperature=0.3,
+                    top_p=0.3,
+                    fireworks_api_key=os.getenv('FIREWORKS_API_KEY'))
 system_message_prompt = SystemMessagePromptTemplate.from_template("你是一个求职助手，用汉语交流。")
 human_message_prompt = HumanMessagePromptTemplate.from_template("HR问或说：“{input}”，你用汉语回答：")
 chat_prompt = ChatPromptTemplate.from_messages(
