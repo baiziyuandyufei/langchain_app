@@ -34,7 +34,7 @@ st.caption("🚀 一个Streamlit个人求职助手聊天机器人，基于FireWo
 with st.sidebar:
     # 密码框
     st.text_input("密码框", key="chatbot_api_key", type="password")
-    "[API申请](https://#)"
+    "[API申请](#)"
     "[查看源码](https://github.com/streamlit/llm-examples/blob/main/Chatbot.py)"
     "[![在GitHub Codespaces打开](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/streamlit/llm-examples?quickstart=1)"
 # 初始化聊天消息会话
