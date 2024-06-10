@@ -40,14 +40,14 @@ with st.sidebar:
 # 初始化聊天消息会话
 if "messages" not in st.session_state:
     #  添加助手消息
-    st.session_state["messages"] = [{"role": "assistant", "content": "我是你的求职助手，帮你回答HR提出的问题，你可以将HR问题告诉我！"}]
+    st.session_state["messages"] = [{"role": "assistant", "content": "我是你的个人求职助手，帮你回答HR提出的问题，你可以将HR的问题输入给我！"}]
 # 显示会话中的所有聊天消息
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
 
 # 聊天输入表格
 # 这句代码使用了海象运算符，将用户在聊天输入框中输入的内容赋值给变量prompt，并检查这个输入内容是否为真（即是否有输入内容）。
-if prompt := st.chat_input():
+if prompt := st.chat_input("HR的问题"):
     # 向会话消息中添加用户输入
     st.session_state.messages.append({"role": "user", "content": prompt})
     # 显示用户输入
