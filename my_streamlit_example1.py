@@ -127,9 +127,13 @@ class JobAssistant:
         return response
 
     def get_response(self, text):
-        response = self.final_chain.invoke({"input": text})
-        response = re.sub(r'^(["「“])(.+)(["」”])$', 
-        lambda m: m.group(2) if (m.group(1) == '"' and m.group(3) == '"') or (m.group(1) == '「' and m.group(3) == '」') else response, response)
+        response = self.final_chain.invoke({"input":text})
+        response = re.sub(r'^(["「“])(.+?)(["」”])$', 
+                      lambda m: m.group(2) if (m.group(1) == m.group(3) or 
+                                               (m.group(1) == '"' and m.group(3) == '"') or 
+                                               (m.group(1) == '「' and m.group(3) == '」') or 
+                                               (m.group(1) == '“' and m.group(3) == '”')) 
+                      else m.group(0), response)
         return response
 
 # 使用示例
