@@ -100,7 +100,7 @@ class JobAssistant:
         self.chain = self.few_shot_prompt | self.llm | StrOutputParser()
 
         self.system_message_prompt = SystemMessagePromptTemplate.from_template("你是一个求职助手，用汉语交流。")
-        self.human_message_prompt = HumanMessagePromptTemplate.from_template("HR问或说: “{question}”，“{response}”你用汉语回答: ")
+        self.human_message_prompt = HumanMessagePromptTemplate.from_template("HR问或说: “{question}”。{response}你用汉语回答: ")
         self.prompt = ChatPromptTemplate.from_messages(
             [self.system_message_prompt, self.human_message_prompt])
 
@@ -115,12 +115,11 @@ class JobAssistant:
             label = self.chain.invoke({"input": text})
             label = re.sub('类别: ?', '', label)
         label = label if label in self.response_dict else "其他"
-        logger.info(f"用户输入: {text}")
-        logger.info(f"类别: {label}")
+        logger.info(f"问题类别: {label}")
         response = self.response_dict[label]["response"]
         if len(response)>0:
             response = f"你在回答中体现一下内容: {response}。" 
-        logger.info(f"响应: {response}")
+        logger.info(f"问题分类响应: {response}")
         return response
 
     def get_response(self, text):
@@ -150,12 +149,14 @@ for msg in st.session_state.messages:
 # 聊天输入表格
 # 这句代码使用了海象运算符，将用户在聊天输入框中输入的内容赋值给变量prompt，并检查这个输入内容是否为真（即是否有输入内容）。
 if prompt := st.chat_input("HR的问题"):
+    logger.info(f"用户输入: {prompt}")
     # 向会话消息中添加用户输入
     st.session_state.messages.append({"role": "user", "content": prompt})
     # 显示用户输入
     st.chat_message("user").write(prompt)
     # 调用链获取响应
     response = assistant.get_response(prompt)
+    logger.info(f"AI响应: {response}")
     # 向会话消息中添加助手输入
     st.session_state.messages.append({"role": "assistant", "content": response})
     # 显示助手消息
