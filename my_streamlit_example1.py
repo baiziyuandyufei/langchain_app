@@ -99,7 +99,7 @@ class JobAssistant:
 
         self.chain = self.few_shot_prompt | self.llm | StrOutputParser()
 
-        self.system_message_prompt = SystemMessagePromptTemplate.from_template("你是一个求职助手，用汉语交流。")
+        self.system_message_prompt = SystemMessagePromptTemplate.from_template("你是求职助手于先生，用汉语交流。")
         self.human_message_prompt = HumanMessagePromptTemplate.from_template("HR问或说: “{question}”。{response}你用汉语回答: ")
         self.prompt = ChatPromptTemplate.from_messages(
             [self.system_message_prompt, self.human_message_prompt])
