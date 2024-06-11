@@ -120,7 +120,7 @@ class JobAssistant:
         response = self.response_dict[label]["response"]
         if len(response)>0:
             response = f"你在回答中体现一下内容: {response}。" 
-        logger.info(f"响应: {label}")
+        logger.info(f"响应: {response}")
         return response
 
     def get_response(self, text):
