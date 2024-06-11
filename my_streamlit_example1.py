@@ -1,30 +1,134 @@
 import streamlit as st
-from langchain_core.prompts import ChatPromptTemplate
+from dotenv import load_dotenv
 from langchain_fireworks import ChatFireworks
 from langchain_core.output_parsers import StrOutputParser
-from dotenv import load_dotenv
+from langchain.prompts import (
+    PromptTemplate,
+    FewShotPromptTemplate
+)
+from langchain_core.output_parsers import StrOutputParser
+import re
+from operator import itemgetter
+from langchain_core.runnables import RunnableLambda
 from langchain.prompts import (
     ChatPromptTemplate,
     SystemMessagePromptTemplate,
     HumanMessagePromptTemplate
 )
+import logging
+
+# 配置日志
+logging.basicConfig(
+    format='%(asctime)s %(levelname)s %(message)s',
+    level=logging.INFO,
+    handlers=[
+        logging.StreamHandler()
+    ]
+)
+# 获取日志记录器
+logger = logging.getLogger(__name__)
+
 # 部署到streamlit时，请在streamlit中配置环境变量
 load_dotenv()
-# 初始化语言模型
-llm = ChatFireworks(model="accounts/fireworks/models/llama-v3-70b-instruct",
-                    temperature=0.3,
-                    top_p=0.3)
-# 系统提示
-system_message_prompt = SystemMessagePromptTemplate.from_template("你是一个求职助手，用汉语交流。")
-# 用户提示
-human_message_prompt = HumanMessagePromptTemplate.from_template("HR问或说：“{input}”，你用汉语回答：")
-# 对话提示
-chat_prompt = ChatPromptTemplate.from_messages(
-    [system_message_prompt,
-     human_message_prompt]
-)
-# 对话链
-chain = chat_prompt|llm|StrOutputParser()
+
+class JobAssistant:
+    def __init__(self, model_path="accounts/fireworks/models/llama-v3-70b-instruct", 
+                temperature=0.3,
+                top_p=0.3):
+        self.llm = ChatFireworks(model=model_path, temperature=temperature)
+        self.response_dict = {
+            "离职原因": {
+                "response": "有换工意愿，上家公司离我居住地太远，通勤时间太长",
+                "examples": [{"text": "离职/换工作的原因","label": "离职原因"}]
+            },
+            "薪资": {
+                "response": "我期望薪资为30K～40K",
+                "examples": [{"text": "但是我们应该最高30K，一般还达不到.","label": "薪资"}]
+            },
+            "外包&外协&外派&驻场": {
+                "response": "职位的办公地点在哪？薪资多少？",
+                "examples": [{"text": "你好，我们是外协岗位，在国家电网 南瑞工作的","label": "外包&外协&外派&驻场"}]
+            },
+            "兼职": {
+                "response": "职位的办公地点在哪？薪资多少，怎么结算？",
+                "examples": [{"text": "哈喽～本职位为线上兼职，一单一结款，根据自己时间自由接单，不耽误自己的主业，您看感兴趣嘛？","label":"兼职"}]
+            },
+            "其他": {
+                "response": "",
+                "examples": []
+            }
+        }
+
+        self.examples = []
+        for key in self.response_dict:
+            r_examples = self.response_dict[key]["examples"]
+            if len(r_examples) > 0:
+                self.examples.extend(r_examples)
+
+        self.example_prompt = PromptTemplate.from_template(
+            """文本: {text}
+            类别: {label}
+            """
+        )
+
+        self.prefix = """
+        给出每个文本的类别，类别只能属于以下列出的一种
+
+        - 离职原因
+        - 薪资
+        - 外包&外协&外派&驻场
+        - 兼职
+        - 学历
+
+        如果不属于以上类别，则类别名称为“其他”。
+
+        例如：
+        """
+
+        self.suffix = """文本: {input}\n类别:
+        """
+
+        self.few_shot_prompt = FewShotPromptTemplate(
+            examples=self.examples,
+            example_prompt=self.example_prompt,
+            prefix=self.prefix,
+            suffix=self.suffix,
+            input_variables=["input"],
+            example_separator="\n"
+        )
+
+        self.chain = self.few_shot_prompt | self.llm | StrOutputParser()
+
+        self.system_message_prompt = SystemMessagePromptTemplate.from_template("你是一个求职助手，用汉语交流。")
+        self.human_message_prompt = HumanMessagePromptTemplate.from_template("HR问或说: “{question}”，“{response}”你用汉语回答: ")
+        self.prompt = ChatPromptTemplate.from_messages(
+            [self.system_message_prompt, self.human_message_prompt])
+
+        self.final_chain = {"question": itemgetter("input"),
+                            "response": itemgetter("input") | RunnableLambda(self.question_classify)} | \
+                           self.prompt | self.llm | StrOutputParser()
+
+    def question_classify(self, text):
+        label = ""
+        text = text.strip()
+        if len(text) > 0:
+            label = self.chain.invoke({"input": text})
+            label = re.sub('类别: ?', '', label)
+        label = label if label in self.response_dict else "其他"
+        logger.info(f"用户输入: {text}")
+        logger.info(f"类别: {label}")
+        response = self.response_dict[label]["response"]
+        if len(response)>0:
+            response = f"你在回答中体现一下内容: {response}。" 
+        logger.info(f"响应: {label}")
+        return response
+
+    def get_response(self, text):
+        return self.final_chain.invoke({"input": text})
+
+# 使用示例
+assistant = JobAssistant()
+
 # 页面大标题
 st.title("个人求职助手")
 st.title("💬 聊天机器人")
@@ -32,15 +136,13 @@ st.title("💬 聊天机器人")
 st.caption("🚀 一个Streamlit个人求职助手聊天机器人，基于FireWorks的llama-v3-70b-instruct模型")
 # 侧边栏
 with st.sidebar:
-    # 密码框
-    st.text_input("密码框", key="chatbot_api_key", type="password")
-    "[API申请](#)"
-    "[查看源码](https://github.com/streamlit/llm-examples/blob/main/Chatbot.py)"
-    "[![在GitHub Codespaces打开](https://github.com/codespaces/badge.svg)](https://github.com/codespaces/new/streamlit/llm-examples?quickstart=1)"
+    st.write("什么也不想写")
+    
 # 初始化聊天消息会话
 if "messages" not in st.session_state:
     #  添加助手消息
     st.session_state["messages"] = [{"role": "assistant", "content": "我是你的个人求职助手，帮你回答HR提出的问题，你可以将HR的问题输入给我！"}]
+
 # 显示会话中的所有聊天消息
 for msg in st.session_state.messages:
     st.chat_message(msg["role"]).write(msg["content"])
@@ -53,7 +155,7 @@ if prompt := st.chat_input("HR的问题"):
     # 显示用户输入
     st.chat_message("user").write(prompt)
     # 调用链获取响应
-    response = chain.invoke({'input':prompt})
+    response = assistant.get_response(prompt)
     # 向会话消息中添加助手输入
     st.session_state.messages.append({"role": "assistant", "content": response})
     # 显示助手消息
