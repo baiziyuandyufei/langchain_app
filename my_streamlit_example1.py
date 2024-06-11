@@ -38,11 +38,11 @@ class JobAssistant:
         self.llm = ChatFireworks(model=model_path, temperature=temperature)
         self.response_dict = {
             "离职原因": {
-                "response": "有换工意愿，上家公司离我居住地太远，通勤时间太长",
+                "response": "有换工意愿，上家公司离我居住地太远，通勤时间太长。",
                 "examples": [{"text": "离职/换工作的原因","label": "离职原因"}]
             },
             "薪资": {
-                "response": "我期望薪资为30K～40K",
+                "response": "我期望薪资为30K～40K。",
                 "examples": [{"text": "但是我们应该最高30K，一般还达不到.","label": "薪资"}]
             },
             "外包&外协&外派&驻场": {
@@ -52,6 +52,10 @@ class JobAssistant:
             "兼职": {
                 "response": "职位的办公地点在哪？薪资多少，怎么结算？",
                 "examples": [{"text": "哈喽～本职位为线上兼职，一单一结款，根据自己时间自由接单，不耽误自己的主业，您看感兴趣嘛？","label":"兼职"}]
+            },
+            "预约面试": {
+                "response": "本周内上午、下午都有时间。",
+                "examples": [{"text": "想约您面试，方便的话麻烦告诉我一下您可以约面试的日期及时间【请选择工作日内的上午10-12点或下午14点到17点内的时间】。","label":"预约面试"}]
             },
             "其他": {
                 "response": "",
@@ -71,14 +75,10 @@ class JobAssistant:
             """
         )
 
-        self.prefix = """
+        self.prefix = f"""
         给出每个文本的类别，类别只能属于以下列出的一种
 
-        - 离职原因
-        - 薪资
-        - 外包&外协&外派&驻场
-        - 兼职
-        - 学历
+        {"- ".join(self.response_dict.keys())}
 
         如果不属于以上类别，则类别名称为“其他”。
 
