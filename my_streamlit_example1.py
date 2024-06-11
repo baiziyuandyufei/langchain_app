@@ -46,7 +46,7 @@ class JobAssistant:
                 "examples": [{"text": "但是我们应该最高30K，一般还达不到.","label": "薪资"}]
             },
             "外包&外协&外派&驻场": {
-                "response": "职位的办公地点在哪？薪资多少？",
+                "response": "请发送或说明职位的办公地点定位。以及薪资范围。我期望薪资范围30-40K？",
                 "examples": [{"text": "你好，我们是外协岗位，在国家电网 南瑞工作的","label": "外包&外协&外派&驻场"}]
             },
             "兼职": {
@@ -118,7 +118,7 @@ class JobAssistant:
         logger.info(f"问题类别: {label}")
         response = self.response_dict[label]["response"]
         if len(response)>0:
-            response = f"你在回答中体现一下内容: {response}。" 
+            response = f"你在回答中体现一下内容: {response}" 
         logger.info(f"问题分类响应: {response}")
         return response
 
