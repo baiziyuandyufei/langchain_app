@@ -117,23 +117,25 @@ class JobAssistant:
         text = text.strip()
         if len(text) > 0:
             label = self.chain.invoke({"input": text})
+            # 清除起始的“类别: ”标记
             label = re.sub('类别: ?', '', label)
         label = label if label in self.response_dict else "其他"
         logger.info(f"问题类别: {label}")
         response = self.response_dict[label]["response"]
         if len(response)>0:
-            response = f"你在回答中体现一下内容: {response}" 
+            response = f"你在回答中体现以下内容: {response}" 
         logger.info(f"问题分类响应: {response}")
         return response
 
     def get_response(self, text):
         response = self.final_chain.invoke({"input":text})
+        # 清除首尾标点符号
         response = re.sub(r'^(["「“])(.+?)(["」”])$', 
                       lambda m: m.group(2) if (m.group(1) == m.group(3) or 
                                                (m.group(1) == '"' and m.group(3) == '"') or 
                                                (m.group(1) == '「' and m.group(3) == '」') or 
                                                (m.group(1) == '“' and m.group(3) == '”')) 
-                      else m.group(0), response)
+                                            else m.group(0), response)
         return response
 
 # 使用示例
@@ -146,7 +148,52 @@ st.title("💬 聊天机器人")
 st.caption("🚀 一个Streamlit个人求职助手聊天机器人，基于FireWorks的llama-v3-70b-instruct模型")
 # 侧边栏
 with st.sidebar:
-    st.write("什么也不想写")
+    st.markdown("""
+    ## 开发计划
+
+    ### 1. 求职助手
+
+    #### 目的
+
+    代表用户同HR交流
+
+    #### 开发计划
+
+    - [x] 通用回答
+    - [x] 问题分类回答，合并通用回答
+    - [ ] 简历知识库，合并通用回答
+    - [x] 人机交互界面
+
+    #### 当前进度
+
+    进度
+
+    - 简历知识库以构建。
+    - 基本检索已实现。
+
+    计划
+
+    - 文本块分割粒度调试。
+    - 选择合适的免费在线数据库。
+
+    ### 2. 快速生成简历
+
+    #### 目的
+
+    根据不同JD描述，生成适配的简历内容
+
+    #### 填写项
+
+    用户填表，点击提交后，生成简历。
+
+    - 岗位职责：。
+    - 岗位描述：。
+    - 学历信息：。
+    - 工作经历：模型、开发语言、工具库、大模型技术、其他。
+    - 离职原因：。
+
+
+    """)
     
 # 初始化聊天消息会话
 if "messages" not in st.session_state:
