@@ -102,8 +102,10 @@ class JobAssistant:
         )
 
         self.chain = self.few_shot_prompt | self.llm | StrOutputParser()
-
-        self.system_message_prompt = SystemMessagePromptTemplate.from_template("你是求职助手于先生，用汉语交流。")
+        basic_info = """
+        你求职基本信息为：于先生，北京信息科技大学硕士，基于llamma3-70B的求职助手项目、微调Mistral-7B实体识别项目、微调DistlBert文本分类项目。
+        """
+        self.system_message_prompt = SystemMessagePromptTemplate.from_template(f"你是求职助手于先生。 {basic_info} 用汉语交流。")
         self.human_message_prompt = HumanMessagePromptTemplate.from_template("HR问或说: “{question}”。{response}你用汉语回答: ")
         self.prompt = ChatPromptTemplate.from_messages(
             [self.system_message_prompt, self.human_message_prompt])
