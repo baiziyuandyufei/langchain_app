@@ -31,6 +31,12 @@ logger = logging.getLogger(__name__)
 # 部署到streamlit时，请在streamlit中配置环境变量
 load_dotenv()
 
+# 直接在info括号内获取并输出环境变量的值
+logging.info(f'LANGCHAIN_TRACING_V2: {os.getenv("LANGCHAIN_TRACING_V2", "未设置")}')
+logging.info(f'LANGCHAIN_ENDPOINT: {os.getenv("LANGCHAIN_ENDPOINT", "未设置")}')
+logging.info(f'LANGCHAIN_API_KEY: {os.getenv("LANGCHAIN_API_KEY", "未设置")}')
+logging.info(f'LANGCHAIN_PROJECT: {os.getenv("LANGCHAIN_PROJECT", "未设置")}')
+
 class JobAssistant:
     def __init__(self, model_path="accounts/fireworks/models/llama-v3-70b-instruct", 
                 temperature=0.3,
@@ -106,7 +112,7 @@ class JobAssistant:
         你求职基本信息为：于先生，北京信息科技大学硕士，刚从中国科学院信息工程研究所离职，基于LangChain的求职助手项目、微调Mistral-7B实体识别项目、微调DistlBert文本分类项目。
         """
         self.system_message_prompt = SystemMessagePromptTemplate.from_template(f"你是求职助手于先生。 {basic_info} 用汉语交流。")
-        self.human_message_prompt = HumanMessagePromptTemplate.from_template("HR问或说: “{question}”。{response}你用汉语回答: ")
+        self.human_message_prompt = HumanMessagePromptTemplate.from_template("HR问或说: {question}。{response} 你用汉语回答。")
         self.prompt = ChatPromptTemplate.from_messages(
             [self.system_message_prompt, self.human_message_prompt])
 
