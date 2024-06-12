@@ -16,6 +16,7 @@ from langchain.prompts import (
     HumanMessagePromptTemplate
 )
 import logging
+import os
 
 # 配置日志
 logging.basicConfig(
