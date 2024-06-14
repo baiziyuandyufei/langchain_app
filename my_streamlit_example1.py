@@ -121,16 +121,20 @@ class JobSearchAssistant:
 
         # 系统提示
         self.system_message_prompt = SystemMessagePromptTemplate.from_template(f"""
-        你是求职助手于先生。
+        你是一个求职助手，代表 “于先生” 回答HR问题。
+        
+        以下是于先生个人信息，以下这些信息只有被问到时才输出。
+        ```
         工作经历：
-        - 中国科学院信息工程研究所 刚离职。
-        - 苏宁易购 离职。
-        - 同方知网 离职。
+        - 中国科学院信息工程研究所 自然语言处理工程师 负责短文本分类 刚离职。
+        - 苏宁易购 自然语言处理工程师 负责商品标题分类和属性词抽取 离职。
+        - 同方知网 计算语言学 负责论文抄袭检测算法设计实现 离职。
         现居住地：北京。
         教育背景：北京信息科技大学 硕士/本科。
         联系方式：请问我的主人。
         期望职位：自然语言处理(NLP)、大模型。
         可访问求职助手APP：https://baiziyuandyufei-langchain-self-stu-my-streamlit-example1-laktvh.streamlit.app/ 。
+        ```
         """)
 
         # 人工提示
@@ -142,23 +146,67 @@ class JobSearchAssistant:
         请用汉语回复内容，内容的头部和尾部不要出现引号。
         """)
 
-        # 合并链提示
-        self.merge_prompt = PromptTemplate.from_template("""
-        你在回答中体现以下内容
-
-        {question_classify_response}
-
-        你的工作经历有以下内容，如果这些内容与HR的问题有关请考虑
-
-        {question_retrieval_response}
-        """)
-
         # 整体链
         self.final_chain = {
             "question": RunnablePassthrough(),
             "context": RunnableParallel(question_classify_response=self.question_classify_chain,
-                                        question_retrieval_response=self.question_retrieval_chain) | self.merge_prompt
-        } | ChatPromptTemplate.from_messages([self.system_message_prompt, self.human_message_prompt]) | self.chat | StrOutputParser()
+                                        question_retrieval_response=self.question_retrieval_chain) 
+        } | RunnableLambda(self.generate_context_prompt) | \
+            ChatPromptTemplate.from_messages([self.system_message_prompt, self.human_message_prompt]) | \
+            self.chat | \
+            StrOutputParser()
+
+    # 求最长公共子串
+    def longest_common_substring(self, s1, s2):
+        # 获取两个字符串的长度
+        len_s1 = len(s1)
+        len_s2 = len(s2)
+
+        # 创建一个二维数组用来存储动态规划的结果
+        dp = [[0] * (len_s2 + 1) for _ in range(len_s1 + 1)]
+
+        # 初始化最大长度和结束位置
+        max_length = 0
+        end_pos = 0
+
+        # 填充动态规划表
+        for i in range(1, len_s1 + 1):
+            for j in range(1, len_s2 + 1):
+                if s1[i - 1] == s2[j - 1]:
+                    dp[i][j] = dp[i - 1][j - 1] + 1
+                    if dp[i][j] > max_length:
+                        max_length = dp[i][j]
+                        end_pos = i
+                else:
+                    dp[i][j] = 0
+
+        # 提取最大公共子串
+        start_pos = end_pos - max_length
+        return s1[start_pos:end_pos]
+
+    # 合并分类和问答提示为context提示
+    def generate_context_prompt(self, all_dict):
+        question = all_dict["question"]
+        question_classify_response = all_dict["context"]["question_classify_response"]
+        question_retrieval_response = all_dict["context"]["question_retrieval_response"]
+        
+        if len(question_classify_response) > 0:
+            question_classify_template = f"""你在回答中体现以下内容
+            {question_classify_response}
+            """
+        else:
+            question_classify_template = ""
+        
+        if len(self.longest_common_substring(question,question_retrieval_response)) >=4:
+            question_retrieval_template = f"""工作经历有以下内容
+            {question_retrieval_response}
+            """
+        else:
+            question_retrieval_template = f"""没有针对该问题的简历信息。"""
+        return {
+            "question":question,
+            "context":f"{question_classify_template}\n\n{question_retrieval_template}\n\n"
+        }
 
     def prepare_question_classify_prompt(self):
         examples = []
