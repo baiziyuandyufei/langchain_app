@@ -223,17 +223,23 @@ with st.sidebar:
 
     #### 开发计划
 
-    - [x] [整体链结构设计](https://github.com/baiziyuandyufei/langchain-self-study-tutorial/blob/main/LCEL.ipynb)
-    - [x] [通用聊天模板设计]()
-    - [x] [问题分类链设计：问题分类FewShot模板设计]()
-    - [x] [问题检索链设计：简历知识库构建-嵌入模型选择、向量存储、检索]()
+    - [x] [整体链结构设计](https://github.com/baiziyuandyufei/langchain-self-study-tutorial/blob/main/求职助手1.ipynb)
+    - [x] [通用聊天模板设计](https://github.com/baiziyuandyufei/langchain-self-study-tutorial/blob/main/求职助手1.ipynb)
+    - [x] [问题分类链设计：问题分类FewShot模板设计](https://github.com/baiziyuandyufei/langchain-self-study-tutorial/blob/main/求职助手1.ipynb)
+    - [x] [问题检索链设计：简历知识库构建-嵌入模型选择、向量存储、检索](https://github.com/baiziyuandyufei/langchain-self-study-tutorial/blob/main/求职助手1.ipynb)
     - [x] 人机交互界面开发
+    - [ ] BOSS上自动回复
+            -- puppeteer实现定时登录boss获取top-20个HR，抽取最后一条信息，助手自己回复。
+                -- HR内容确定一个id,存本地mongo，相同id不再处理。
+                -- 所有对话内容发送到微信。
+                -- 检测到面试时间邀约发送到微信。
     - [ ] 距离工具，输入职位地点后，自动匹配距离，远距离不去。
     - [ ] 岗位职责描述与自身条件满足度得分。
 
     #### 当前进度
 
-    - 休闲
+    - 本可以用selenium，就是想要玩node的puppeteer，反正闲着也是闲着。
+    - 听说庆余年二季发布了是吗？要看。
 
     ### 2. 快速生成简历
 
@@ -249,10 +255,10 @@ with st.sidebar:
     - 岗位描述：
     - 学历信息：
     - 工作经历：
-    -- 开发语言
-    -- 工具库
-    -- 模型
-    -- 其他
+         开发语言
+        -- 工具库
+        -- 模型
+        -- 其他
     - 离职原因：
     - 现居住地：
 
