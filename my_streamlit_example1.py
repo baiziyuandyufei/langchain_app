@@ -229,10 +229,10 @@ with st.sidebar:
     - [x] [问题检索链设计：简历知识库构建-嵌入模型选择、向量存储、检索](https://github.com/baiziyuandyufei/langchain-self-study-tutorial/blob/main/求职助手1.ipynb)
     - [x] 人机交互界面开发
     - [ ] BOSS上自动回复
-            -- puppeteer实现定时登录boss获取top-20个HR，抽取最后一条信息，助手自己回复。
-                -- HR内容确定一个id,存本地mongo，相同id不再处理。
-                -- 所有对话内容发送到微信。
-                -- 检测到面试时间邀约发送到微信。
+        - puppeteer实现定时登录boss获取top-20个HR，抽取最后一条信息，助手自己回复。
+            - HR内容确定一个id,存本地mongo，相同id不再处理。
+            - 所有对话内容发送到微信。
+            - 检测到面试时间邀约发送到微信。
     - [ ] 距离工具，输入职位地点后，自动匹配距离，远距离不去。
     - [ ] 岗位职责描述与自身条件满足度得分。
 
