@@ -316,7 +316,7 @@ with st.sidebar:
 if "messages" not in st.session_state:
     #  添加助手消息
     st.session_state["messages"] = [
-        {"role": "assistant", "content": "我是【WordWeaver+巴拉巴拉小魔仙+十一郎】的求职助手，替我的主人回答HR的问题，你可以将问题输入给我！"}]
+        {"role": "assistant", "content": "我是求职助手，替我的主人回答HR的问题，你可以将问题输入给我！"}]
 
 # 显示会话中的所有聊天消息
 for msg in st.session_state.messages:
