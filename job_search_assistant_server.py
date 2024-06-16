@@ -79,7 +79,7 @@ class JobSearchAssistant:
                 "examples": [{"text": "离职/换工作的原因", "label": "离职原因"}]
             },
             "薪资": {
-                "response": "我期望薪资为25K～30K。",
+                "response": "我期望薪资为30K～40K。",
                 "examples": [{"text": "但是我们应该最高30K，一般还达不到.", "label": "薪资"}]
             },
             "外包&外协&外派&驻场": {
