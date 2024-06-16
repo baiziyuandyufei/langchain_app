@@ -134,7 +134,7 @@ class JobSearchAssistant:
         教育背景：北京信息科技大学 硕士/本科。
         联系方式：请问我的主人。
         期望职位：自然语言处理(NLP)、大模型。
-        可访问求职助手APP：https://baiziyuandyufei-langchain-self-stu-my-streamlit-example1-laktvh.streamlit.app/ 。
+        可访问求职助手APP：https://baiziyuandyufei-job-search-a-job-search-assistant-server-zv2qqt.streamlit.app/。
         ```
         """)
 
