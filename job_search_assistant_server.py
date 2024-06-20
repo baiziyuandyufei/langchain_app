@@ -34,7 +34,6 @@ logger = logging.getLogger(__name__)
 
  # 部署到streamlit时，请在streamlit中配置环境变量
 load_dotenv()
-os.environ['LANGCHAIN_TRACING_V2'] = 'true'
 
 # # 直接在info括号内获取并输出环境变量的值
 # logging.info(f'LANGCHAIN_TRACING_V2: {os.getenv("LANGCHAIN_TRACING_V2", "未设置")}')
