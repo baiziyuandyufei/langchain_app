@@ -18,8 +18,8 @@ from langchain_core.runnables import (
 from langchain_core.output_parsers import StrOutputParser
 import re
 import logging
-from langsmith import traceable
-
+from langsmith.run_helpers import traceable
+import os
 
 # 配置日志
 logging.basicConfig(
@@ -34,6 +34,7 @@ logger = logging.getLogger(__name__)
 
  # 部署到streamlit时，请在streamlit中配置环境变量
 load_dotenv()
+os.environ['LANGCHAIN_TRACING_V2'] = 'true'
 
 # # 直接在info括号内获取并输出环境变量的值
 # logging.info(f'LANGCHAIN_TRACING_V2: {os.getenv("LANGCHAIN_TRACING_V2", "未设置")}')
@@ -243,6 +244,8 @@ class JobSearchAssistant:
         response = self.question_classify_dict[label]["response"]
         return response
 
+    
+    @traceable  # Auto-trace this function
     def get_response(self, question):
         return self.final_chain.invoke(question)
 
