@@ -18,6 +18,7 @@ from langchain_core.runnables import (
 from langchain_core.output_parsers import StrOutputParser
 import re
 import logging
+from langsmith import traceable
 
 
 # 配置日志
@@ -31,7 +32,7 @@ logging.basicConfig(
 # 获取日志记录器
 logger = logging.getLogger(__name__)
 
-# 部署到streamlit时，请在streamlit中配置环境变量
+ # 部署到streamlit时，请在streamlit中配置环境变量
 load_dotenv()
 
 # # 直接在info括号内获取并输出环境变量的值
@@ -83,7 +84,7 @@ class JobSearchAssistant:
                 "examples": [{"text": "但是我们应该最高30K，一般还达不到.", "label": "薪资"}]
             },
             "外包&外协&外派&驻场": {
-                "response": "请发送或说明职位的办公地点定位。以及薪资范围。我期望薪资范围30-40K？",
+                "response": "请发送或说明职位的办公地点定位。以及薪资范围。我期望薪资范围50k以上？",
                 "examples": [{"text": "你好，我们是外协岗位，在国家电网 南瑞工作的", "label": "外包&外协&外派&驻场"}]
             },
             "兼职": {
