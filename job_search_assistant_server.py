@@ -265,19 +265,13 @@ with st.sidebar:
 
     #### 开发计划
 
-    - [x] [整体链结构设计](https://github.com/baiziyuandyufei/langchain-self-study-tutorial/blob/main/求职助手1.ipynb)
-    - [x] [通用聊天模板设计](https://github.com/baiziyuandyufei/langchain-self-study-tutorial/blob/main/求职助手1.ipynb)
-    - [x] [问题分类链设计：问题分类FewShot模板设计](https://github.com/baiziyuandyufei/langchain-self-study-tutorial/blob/main/求职助手1.ipynb)
-    - [x] [问题检索链设计：简历知识库构建-嵌入模型选择、向量存储、检索](https://github.com/baiziyuandyufei/langchain-self-study-tutorial/blob/main/求职助手1.ipynb)
+    - [x] [整体链结构设计]
+    - [x] [通用聊天模板设计]
+    - [x] [问题分类链设计：问题分类FewShot模板设计]
+    - [x] [问题检索链设计：简历知识库构建-嵌入模型选择、向量存储、检索]
     - [x] 人机交互界面开发
-    - [ ] BOSS上自动回复
-        - puppeteer定时登录
-        - puppeteer获取top-20个HR，抽取最后一条信息，助手自己回复。
-            - HR内容确定一个id,存本地mongo，相同id不再处理。
-            - 所有对话内容发送到微信。
-            - 检测到面试时间邀约发送到微信。
-    - [ ] 新JD检测与打招呼
-        - JD与我匹配度计算
+    - [x] BOSS上自动回复
+    - [x] 新JD检测与打招呼
     - [ ] JD与我匹配度计算
         - 距离打分。
         - 相关度打分。
