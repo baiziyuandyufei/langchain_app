@@ -79,25 +79,33 @@ class JobSearchAssistant:
                 "response": "有换工意愿，上家公司离我居住地太远，通勤时间太长。",
                 "examples": [{"text": "离职/换工作的原因", "label": "离职原因"}]
             },
-            "薪资": {
-                "response": "我期望薪资为30K～40K。",
-                "examples": [{"text": "但是我们应该最高30K，一般还达不到.", "label": "薪资"}]
+            "薪资&薪资范围&期望薪资": {
+                "response": "上一家单位薪资为20K*15，当前我期望薪资为30K～40K。",
+                "examples": [{"text": "但是我们应该最高30K，一般还达不到.", "label": "薪资&薪资范围&期望薪资"}]
             },
             "外包&外协&外派&驻场": {
-                "response": "请发送或说明职位的办公地点定位。以及薪资范围。我期望薪资范围50k以上？",
+                "response": "请发送或说明职位的办公地点定位。以及薪资范围。我期望薪资范围50k以上。",
                 "examples": [{"text": "你好，我们是外协岗位，在国家电网 南瑞工作的", "label": "外包&外协&外派&驻场"}]
             },
             "兼职": {
-                "response": "职位的办公地点在哪？薪资多少，怎么结算？",
+                "response": "请发送或说明职位的办公地点定位。以及薪资范围。我期望薪资范围50k以上。",
                 "examples": [{"text": "哈喽～本职位为线上兼职，一单一结款，根据自己时间自由接单，不耽误自己的主业，您看感兴趣嘛？", "label": "兼职"}]
             },
             "预约面试": {
-                "response": "请您稍等，我看一下我的时间",
+                "response": "请您稍等，我看一下我的时间。",
                 "examples": [{"text": "想约您面试，方便的话麻烦告诉我一下您可以约面试的日期及时间。", "label": "预约面试"}]
             },
             "到岗时间": {
                 "response": "两周内到岗。",
                 "examples": [{"text": "咱到岗时间呢。", "label": "到岗时间"}]
+            },
+            "简历": {
+                "response": "马上发送简历，但如果只是想获取联系方式，就不要耽误大家时间。",
+                "examples": [{"text": "您好 方便发一份简历过来吗？", "label": "简历"}]
+            },
+            "请求微信": {
+                "response": "请直接在boss上确定面试时间，发送预约面试请求。",
+                "examples": [{"text": "你好 方便加个微信吗？", "label": "请求微信"}]
             },
             "其他": {
                 "response": "",
@@ -140,13 +148,7 @@ class JobSearchAssistant:
         """)
 
         # 人工提示
-        self.human_message_prompt = HumanMessagePromptTemplate.from_template("""
-        HR问或说: {question}。
-
-        {context}
-
-        请用汉语回复内容，内容的头部和尾部不要出现引号。
-        """)
+        self.human_message_prompt = HumanMessagePromptTemplate.from_template("""HR问或说: {question}。\n\n{context}\n\n请用汉语回复内容，内容的头部和尾部不要出现引号。""")
 
         # 整体链
         self.final_chain = {
@@ -193,18 +195,14 @@ class JobSearchAssistant:
         question_retrieval_response = all_dict["context"]["question_retrieval_response"]
         
         if len(question_classify_response) > 0:
-            question_classify_template = f"""你在回答中体现以下内容
-            {question_classify_response}
-            """
+            question_classify_template = f"""你在回答中体现以下内容\n\n{question_classify_response}"""
         else:
             question_classify_template = ""
         
         if len(self.longest_common_substring(question,question_retrieval_response)) >=4:
-            question_retrieval_template = f"""工作经历有以下内容
-            {question_retrieval_response}
-            """
+            question_retrieval_template = f"""工作经历有以下内容: \n\n{question_retrieval_response}"""
         else:
-            question_retrieval_template = f"""没有针对该问题的简历信息。"""
+            question_retrieval_template = ""
         return {
             "question":question,
             "context":f"{question_classify_template}\n\n{question_retrieval_template}\n\n"
@@ -219,22 +217,14 @@ class JobSearchAssistant:
 
         example_prompt = PromptTemplate.from_template(
             """文本: {text}
-            类别: {label}
-            """
+类别: {label}\n"""
         )
 
-        prefix = f"""
-        给出每个文本的类别，类别只能属于以下列出的一种
+        label_li_str = '\n- '.join(self.question_classify_dict.keys())
+        label_li_str = '\n- ' + label_li_str
 
-        {"- ".join(self.question_classify_dict.keys())}
-
-        如果不属于以上类别，则类别名称为“其他”。
-
-        例如：
-        """
-
-        suffix = """文本: {input}\n类别:
-        """
+        prefix = f"""给出每个文本的类别，类别只能属于以下列出的一种\n{label_li_str}\n如果不属于以上类别，则类别名称为“其他”。\n例如："""
+        suffix = """文本: {input}\n类别:"""
         return examples, example_prompt, prefix, suffix
 
     def label_to_response(self, label):
