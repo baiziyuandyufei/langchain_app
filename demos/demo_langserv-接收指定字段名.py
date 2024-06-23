@@ -18,7 +18,7 @@ os.environ["LANGCHAIN_TRACING_V2"] = "false"
 chat = ChatFireworks(model="accounts/fireworks/models/mixtral-8x7b-instruct",temperature=0,max_tokens=3000)
 receive_prompt = PromptTemplate.from_template("{job_title}")
 system_prompt = PromptTemplate.from_template("""
-提取职位信息以JSON格式返回，每条职位信息可以包括以下字段: 
+提取职位信息，每条职位信息可以包括以下字段: 
 
 - 职位名
 - 薪资范围
@@ -32,11 +32,30 @@ system_prompt = PromptTemplate.from_template("""
 - 发布时间
 
 没有找到的字段不输出。
+                                             
+输出格式举例如下：
+                                             
+1. 职位名: nlp自然语言处理工程师
+- 薪资范围: 1万-2万
+- 公司名: 四川智服人力资源有限公司
+- 职位地点: 北京·海淀·西北旺
+- HR名字: 罗镇坤
+- 公司性质: 民营
+
+2. 职位名: 自然语言处理工程师
+- 薪资范围: 2.9万-3.5万
+- 公司名: 北京友安丰廷创新科技有限公司
+- 职位地点: 北京·西城·展览路
+- HR名字: 宋女士
+- 公司性质: 民营
+
+...
 
 以下是待提取职位信息的文本内容: 
                              
 {content}
-                             
+
+输出普通字符串即可。        
 """)
 
 def crawl_page(job_title):
