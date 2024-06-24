@@ -18,7 +18,6 @@ from langchain_core.runnables import (
 from langchain_core.output_parsers import StrOutputParser
 import re
 import logging
-from langsmith.run_helpers import traceable
 import os
 
 # 配置日志
@@ -31,16 +30,13 @@ logging.basicConfig(
 )
 # 获取日志记录器
 logger = logging.getLogger(__name__)
-
  # 部署到streamlit时，请在streamlit中配置环境变量
 load_dotenv()
-
-# # 直接在info括号内获取并输出环境变量的值
-# logging.info(f'LANGCHAIN_TRACING_V2: {os.getenv("LANGCHAIN_TRACING_V2", "未设置")}')
-# logging.info(f'LANGCHAIN_ENDPOINT: {os.getenv("LANGCHAIN_ENDPOINT", "未设置")}')
-# logging.info(f'LANGCHAIN_API_KEY: {os.getenv("LANGCHAIN_API_KEY", "未设置")}')
-# logging.info(f'LANGCHAIN_PROJECT: {os.getenv("LANGCHAIN_PROJECT", "未设置")}')
-
+os.environ["LANGCHAIN_TRACING_V2"] = "true"
+os.environ["LANGCHAIN_PROJECT"] = "job-search-assistant-webpage"
+logging.info(f'LANGCHAIN_TRACING_V2: {os.getenv("LANGCHAIN_TRACING_V2", "未设置")}')
+logging.info(f'LANGCHAIN_ENDPOINT: {os.getenv("LANGCHAIN_ENDPOINT", "未设置")}')
+logging.info(f'LANGCHAIN_PROJECT: {os.getenv("LANGCHAIN_PROJECT", "未设置")}')
 
 class JobSearchAssistant:
     def __init__(self, url, embedding_model_name, chat_model_name):
@@ -57,7 +53,14 @@ class JobSearchAssistant:
         print(f"分割后快数: {len(self.documents)}")
 
         # 向量化、存储
-        self.embedding_model = FireworksEmbeddings(model=embedding_model_name)
+        if embedding_model_name == "BAAI/bge-large-zh-v1.5":
+            model_kwargs = {"device": "cpu"}
+            encode_kwargs = {"normalize_embeddings": True}
+            self.embedding_model = HuggingFaceBgeEmbeddings(
+                model_name=embedding_model_name, model_kwargs=model_kwargs, encode_kwargs=encode_kwargs
+            )
+        else:
+            self.embedding_model = FireworksEmbeddings(model=embedding_model_name)
         self.db = FAISS.from_documents(
             documents=self.documents, embedding=self.embedding_model)
         print(f"索引片段数: {self.db.index.ntotal}")
@@ -66,7 +69,7 @@ class JobSearchAssistant:
         self.retriever = self.db.as_retriever()
 
         # 检索链
-        self.question_retrieval_chain = self.retriever | RunnableLambda(
+        self.question_retrieval_chain = RunnableLambda(lambda x:x["input"]) | self.retriever | RunnableLambda(
             lambda docs: "\n".join([doc.page_content for doc in docs]))
 
         # 实例化聊天模型
@@ -151,15 +154,27 @@ class JobSearchAssistant:
         self.human_message_prompt = HumanMessagePromptTemplate.from_template("""HR问或说: {question}。\n\n{context}\n\n请用汉语回复内容，内容的头部和尾部不要出现引号。""")
 
         # 整体链
-        self.final_chain = {
-            "question": RunnablePassthrough(),
-            "context": RunnableParallel(question_classify_response=self.question_classify_chain,
-                                        question_retrieval_response=self.question_retrieval_chain) 
-        } | RunnableLambda(self.generate_context_prompt) | \
+        ## 输入的字典的变量名叫 question
+        ## RunnablePassthrough 接收输入字典{"question":"你好"} 输出 {'question': '你好', 'context':'xxx'}
+        ## {"input": lambda x:x["question"]} 接收 {"question":"你好"} 输出 {"input":"你好"}
+        ## RunnableParallel 接收 {"input":"你好"} 输出 {'question_classify_response': '', 'question_retrieval_response': '-\n-\n-\n-', 'question': '你好'}
+        ## question_classify_chain 接收 {"input":"你好"} 输出 '' 分类链结果
+        ## question_retrieval_chain 接收 {"input":"你好"} 输出 '-\n-\n-\n-' 检索链结果
+        ## RunnableLambda(lambda x:x["input"]) 接收 {"input":"你好"} 输出 "你好"
+        ## RunnableLambda(self.generate_context_prompt) 接收 {'question_classify_response': '', 'question_retrieval_response': '-\n-\n-\n-', 'question': '你好'} 输出 '\n\n\n\n' 上下文提示 
+        self.final_chain = (
+            RunnablePassthrough.assign(context= {"input": lambda x:x["question"]}|\
+                RunnableParallel(question_classify_response=self.question_classify_chain,
+                                 question_retrieval_response=self.question_retrieval_chain,
+                                 question = RunnableLambda(lambda x:x["input"]),
+                                ) |\
+                RunnableLambda(self.generate_context_prompt)) |\
             ChatPromptTemplate.from_messages([self.system_message_prompt, self.human_message_prompt]) | \
             self.chat | \
-            StrOutputParser()
-
+            StrOutputParser() 
+        )
+            
+    
     # 求最长公共子串
     def longest_common_substring(self, s1, s2):
         # 获取两个字符串的长度
@@ -191,8 +206,8 @@ class JobSearchAssistant:
     # 合并分类和问答提示为context提示
     def generate_context_prompt(self, all_dict):
         question = all_dict["question"]
-        question_classify_response = all_dict["context"]["question_classify_response"]
-        question_retrieval_response = all_dict["context"]["question_retrieval_response"]
+        question_classify_response = all_dict["question_classify_response"]
+        question_retrieval_response = all_dict["question_retrieval_response"]
         
         if len(question_classify_response) > 0:
             question_classify_template = f"""你在回答中体现以下内容\n\n{question_classify_response}"""
@@ -203,10 +218,8 @@ class JobSearchAssistant:
             question_retrieval_template = f"""工作经历有以下内容: \n\n{question_retrieval_response}"""
         else:
             question_retrieval_template = ""
-        return {
-            "question":question,
-            "context":f"{question_classify_template}\n\n{question_retrieval_template}\n\n"
-        }
+        
+        return f"{question_classify_template}\n\n{question_retrieval_template}\n\n"
 
     def prepare_question_classify_prompt(self):
         examples = []
@@ -233,20 +246,13 @@ class JobSearchAssistant:
         response = self.question_classify_dict[label]["response"]
         return response
 
-    
-    @traceable  # Auto-trace this function
-    def get_response(self, question):
-        return self.final_chain.invoke(question)
-
 
 url = "https://raw.githubusercontent.com/baiziyuandyufei/langchain-self-study-tutorial/main/jl.txt"
 embedding_model_name = "nomic-ai/nomic-embed-text-v1.5"
 chat_model_name = "accounts/fireworks/models/llama-v3-70b-instruct"
-
 assistant = JobSearchAssistant(url, embedding_model_name, chat_model_name)
 
 # 人机交互界面
-
 # 页面大标题
 st.title("个人求职助手")
 st.title("💬 聊天机器人")
@@ -334,7 +340,7 @@ if prompt := st.chat_input("HR的问题"):
     # 显示用户输入
     st.chat_message("user").write(prompt)
     # 调用链获取响应
-    response = assistant.get_response(prompt)
+    response = assistant.final_chain.invoke({"question":prompt})
     logger.info(f"AI响应: {response}")
     # 向会话消息中添加助手输入
     st.session_state.messages.append(
