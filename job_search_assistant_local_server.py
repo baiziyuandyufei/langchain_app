@@ -14,11 +14,10 @@ os.environ["LANGCHAIN_PROJECT"] = "job-search-assistant-local"
 
 # 部署服务
 url = "https://raw.githubusercontent.com/baiziyuandyufei/langchain-self-study-tutorial/main/jl.txt"
-# embedding_model_name = "BAAI/bge-large-zh-v1.5"
-embedding_model_name = "nomic-ai/nomic-embed-text-v1.5"
+embedding_model_name = "BAAI/bge-large-zh-v1.5"
+# embedding_model_name = "nomic-ai/nomic-embed-text-v1.5"
 chat_model_name = "accounts/fireworks/models/llama-v3-70b-instruct"
 assistant = JobSearchAssistant(url, embedding_model_name, chat_model_name)
-print(assistant.final_chain.invoke({"question":"你好"}))
 
 app = FastAPI(
     title="求职助手本地服务版",

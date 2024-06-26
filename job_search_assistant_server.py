@@ -1,6 +1,8 @@
 import streamlit as st
 from dotenv import load_dotenv
-from langchain.text_splitter import RecursiveCharacterTextSplitter, CharacterTextSplitter
+import logging
+import os
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import WebBaseLoader
 from langchain_fireworks import FireworksEmbeddings, ChatFireworks
 from langchain.vectorstores import FAISS
@@ -16,28 +18,9 @@ from langchain_core.runnables import (
     RunnablePassthrough,
     RunnableLambda)
 from langchain_core.output_parsers import StrOutputParser
-import logging
-import re
-import os
 from langchain_community.embeddings import HuggingFaceBgeEmbeddings
+import re
 
-# 配置日志
-logging.basicConfig(
-    format='%(asctime)s %(levelname)s %(message)s',
-    level=logging.INFO,
-    handlers=[
-        logging.StreamHandler()
-    ]
-)
-# 获取日志记录器
-logger = logging.getLogger(__name__)
- # 部署到streamlit时，请在streamlit中配置环境变量
-load_dotenv()
-os.environ["LANGCHAIN_TRACING_V2"] = "true"
-os.environ["LANGCHAIN_PROJECT"] = "job-search-assistant-webpage"
-logging.info(f'LANGCHAIN_TRACING_V2: {os.getenv("LANGCHAIN_TRACING_V2", "未设置")}')
-logging.info(f'LANGCHAIN_ENDPOINT: {os.getenv("LANGCHAIN_ENDPOINT", "未设置")}')
-logging.info(f'LANGCHAIN_PROJECT: {os.getenv("LANGCHAIN_PROJECT", "未设置")}')
 
 class JobSearchAssistant:
     def __init__(self, url, embedding_model_name, chat_model_name):
@@ -252,103 +235,122 @@ class JobSearchAssistant:
         return response
 
 
-url = "https://raw.githubusercontent.com/baiziyuandyufei/langchain-self-study-tutorial/main/jl.txt"
-embedding_model_name = "nomic-ai/nomic-embed-text-v1.5"
-chat_model_name = "accounts/fireworks/models/llama-v3-70b-instruct"
-assistant = JobSearchAssistant(url, embedding_model_name, chat_model_name)
+if __name__ == "__main__":
+    # 配置日志
+    logging.basicConfig(
+        format='%(asctime)s %(levelname)s %(message)s',
+        level=logging.INFO,
+        handlers=[
+            logging.StreamHandler()
+        ]
+    )
+    # 获取日志记录器
+    logger = logging.getLogger(__name__)
+    # 部署到streamlit时，请在streamlit中配置环境变量
+    load_dotenv()
+    os.environ["LANGCHAIN_TRACING_V2"] = "true"
+    os.environ["LANGCHAIN_PROJECT"] = "job-search-assistant-webpage"
+    logging.info(f'LANGCHAIN_TRACING_V2: {os.getenv("LANGCHAIN_TRACING_V2", "未设置")}')
+    logging.info(f'LANGCHAIN_ENDPOINT: {os.getenv("LANGCHAIN_ENDPOINT", "未设置")}')
+    logging.info(f'LANGCHAIN_PROJECT: {os.getenv("LANGCHAIN_PROJECT", "未设置")}')
 
-# 人机交互界面
-# 页面大标题
-st.title("个人求职助手")
-st.title("💬 聊天机器人")
-# 页面描述
-st.caption("🚀 一个Streamlit个人求职助手聊天机器人，基于FireWorks的llama-v3-70b-instruct模型")
-# 侧边栏
-with st.sidebar:
-    st.markdown("""
-    ## 开发计划
+    url = "https://raw.githubusercontent.com/baiziyuandyufei/langchain-self-study-tutorial/main/jl.txt"
+    embedding_model_name = "nomic-ai/nomic-embed-text-v1.5"
+    chat_model_name = "accounts/fireworks/models/llama-v3-70b-instruct"
+    assistant = JobSearchAssistant(url, embedding_model_name, chat_model_name)
 
-    ### 1. 求职助手
+    # 人机交互界面
+    # 页面大标题
+    st.title("个人求职助手")
+    st.title("💬 聊天机器人")
+    # 页面描述
+    st.caption("🚀 一个Streamlit个人求职助手聊天机器人，基于FireWorks的llama-v3-70b-instruct模型")
+    # 侧边栏
+    with st.sidebar:
+        st.markdown("""
+        ## 开发计划
 
-    #### 目的
+        ### 1. 求职助手
 
-    代表用户同HR交流
+        #### 目的
 
-    #### 开发计划
+        代表用户同HR交流
 
-    - [x] [整体链结构设计]
-    - [x] [通用聊天模板设计]
-    - [x] [问题分类链设计：问题分类FewShot模板设计]
-    - [x] [问题检索链设计：简历知识库构建-嵌入模型选择、向量存储、检索]
-    - [x] 人机交互界面开发
-    - [x] BOSS上自动回复
-    - [] 新JD检测与打招呼
-    - [] [距离计算链设计]
-        - 直线距离
-        - 曼哈顿距离（有地图信息后）
-    - [] [面试信息记录链]
-        - 输入文本信息，LLM自动转格式化数据，入本地数据库。
-        - 抽取出的格式化信息包括：公司名称，面试时间，面试方式，面试评价，面试问题。
-    - [ ] JD与我匹配度计算
-        - 距离打分。
-        - 相关度打分。
-        - 薪资打分。
-        - 公司人数打分。
-        - 注册资金打分。
-        - 公司性质打分。
-        - 加权总分。
+        #### 开发计划
 
-    #### 当前进度
+        - [x] [整体链结构设计]
+        - [x] [通用聊天模板设计]
+        - [x] [问题分类链设计：问题分类FewShot模板设计]
+        - [x] [问题检索链设计：简历知识库构建-嵌入模型选择、向量存储、检索]
+        - [x] 人机交互界面开发
+        - [x] BOSS上自动回复
+        - [] 新JD检测与打招呼
+        - [] [距离计算链设计]
+            - 直线距离
+            - 曼哈顿距离（有地图信息后）
+        - [] [面试信息记录链]
+            - 输入文本信息，LLM自动转格式化数据，入本地数据库。
+            - 抽取出的格式化信息包括：公司名称，面试时间，面试方式，面试评价，面试问题。
+        - [ ] JD与我匹配度计算
+            - 距离打分。
+            - 相关度打分。
+            - 薪资打分。
+            - 公司人数打分。
+            - 注册资金打分。
+            - 公司性质打分。
+            - 加权总分。
 
-    - 获取地点经纬度，计算直线距离。
-    - 听说庆余年二季发布了是吗？要看。
+        #### 当前进度
 
-    ### 2. 快速生成简历
+        - 获取地点经纬度，计算直线距离。
+        - 听说庆余年二季发布了是吗？要看。
 
-    #### 目的
+        ### 2. 快速生成简历
 
-    根据不同JD描述，生成适配的简历内容
+        #### 目的
 
-    #### 填写项
+        根据不同JD描述，生成适配的简历内容
 
-    用户填表，点击提交后，生成简历。
+        #### 填写项
 
-    - 岗位职责：
-    - 岗位描述：
-    - 学历信息：
-    - 工作经历：
-        - 开发语言
-        - 工具库
-        - 模型
-        - 其他
-    - 离职原因：
-    - 现居住地：
+        用户填表，点击提交后，生成简历。
 
-    """)
+        - 岗位职责：
+        - 岗位描述：
+        - 学历信息：
+        - 工作经历：
+            - 开发语言
+            - 工具库
+            - 模型
+            - 其他
+        - 离职原因：
+        - 现居住地：
 
-# 初始化聊天消息会话
-if "messages" not in st.session_state:
-    #  添加助手消息
-    st.session_state["messages"] = [
-        {"role": "assistant", "content": "我是求职助手，替我的主人回答HR的问题，你可以将问题输入给我！"}]
+        """)
 
-# 显示会话中的所有聊天消息
-for msg in st.session_state.messages:
-    st.chat_message(msg["role"]).write(msg["content"])
+    # 初始化聊天消息会话
+    if "messages" not in st.session_state:
+        #  添加助手消息
+        st.session_state["messages"] = [
+            {"role": "assistant", "content": "我是求职助手，替我的主人回答HR的问题，你可以将问题输入给我！"}]
 
-# 聊天输入表格
-# 这句代码使用了海象运算符，将用户在聊天输入框中输入的内容赋值给变量prompt，并检查这个输入内容是否为真（即是否有输入内容）。
-if prompt := st.chat_input("HR的问题"):
-    logger.info(f"用户输入: {prompt}")
-    # 向会话消息中添加用户输入
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    # 显示用户输入
-    st.chat_message("user").write(prompt)
-    # 调用链获取响应
-    response = assistant.final_chain.invoke({"question":prompt})
-    logger.info(f"AI响应: {response}")
-    # 向会话消息中添加助手输入
-    st.session_state.messages.append(
-        {"role": "assistant", "content": response})
-    # 显示助手消息
-    st.chat_message("assistant").write(response)
+    # 显示会话中的所有聊天消息
+    for msg in st.session_state.messages:
+        st.chat_message(msg["role"]).write(msg["content"])
+
+    # 聊天输入表格
+    # 这句代码使用了海象运算符，将用户在聊天输入框中输入的内容赋值给变量prompt，并检查这个输入内容是否为真（即是否有输入内容）。
+    if prompt := st.chat_input("HR的问题"):
+        logger.info(f"用户输入: {prompt}")
+        # 向会话消息中添加用户输入
+        st.session_state.messages.append({"role": "user", "content": prompt})
+        # 显示用户输入
+        st.chat_message("user").write(prompt)
+        # 调用链获取响应
+        response = assistant.final_chain.invoke({"question":prompt})
+        logger.info(f"AI响应: {response}")
+        # 向会话消息中添加助手输入
+        st.session_state.messages.append(
+            {"role": "assistant", "content": response})
+        # 显示助手消息
+        st.chat_message("assistant").write(response)
