@@ -16,9 +16,10 @@ from langchain_core.runnables import (
     RunnablePassthrough,
     RunnableLambda)
 from langchain_core.output_parsers import StrOutputParser
-import re
 import logging
+import re
 import os
+from langchain_community.embeddings import HuggingFaceBgeEmbeddings
 
 # 配置日志
 logging.basicConfig(
@@ -97,6 +98,10 @@ class JobSearchAssistant:
             "预约面试": {
                 "response": "请您稍等，我看一下我的时间。",
                 "examples": [{"text": "想约您面试，方便的话麻烦告诉我一下您可以约面试的日期及时间。", "label": "预约面试"}]
+            },
+            "会议邀请": {
+                "response": "请您稍等，我看一下我的时间。",
+                "examples": [{"text": "会议主题：中电信数智科技会议时间：中国标准时间 - 北京点击链接入会，，打开手机腾讯会议即可参与", "label": "会议邀请"}]
             },
             "到岗时间": {
                 "response": "两周内到岗。",
