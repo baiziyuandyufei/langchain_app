@@ -4,6 +4,7 @@ import logging
 import os
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.document_loaders import WebBaseLoader
+from langchain_groq import ChatGroq
 from langchain_fireworks import FireworksEmbeddings, ChatFireworks
 from langchain.vectorstores import FAISS
 from langchain_core.prompts import (
@@ -57,8 +58,23 @@ class JobSearchAssistant:
             lambda docs: "\n".join([doc.page_content for doc in docs]))
 
         # 实例化聊天模型
-        self.chat = ChatFireworks(
-            model=chat_model_name, temperature=0.3, top_p=0.3)
+        if chat_model_name == "llama3-70b-8192":
+            self.chat = ChatGroq(
+                temperature=0.3,
+                model=chat_model_name,
+                model_kwargs={
+                    "top":0.3
+                },
+                # api_key="" # Optional if not set as an environment variable
+                )
+        else:
+            self.chat = ChatFireworks(
+                model=chat_model_name,
+                temperature=0.3,
+                model_kwargs={
+                    "top_p":0.3
+                    }
+                )
 
         # 分类词典
         self.question_classify_dict = {
@@ -163,10 +179,9 @@ class JobSearchAssistant:
                 RunnableLambda(self.generate_context_prompt)) |\
             ChatPromptTemplate.from_messages([self.system_message_prompt, self.human_message_prompt]) | \
             self.chat | \
-            StrOutputParser() 
+            StrOutputParser()
         )
-            
-    
+
     # 求最长公共子串
     def longest_common_substring(self, s1, s2):
         # 获取两个字符串的长度
@@ -200,17 +215,17 @@ class JobSearchAssistant:
         question = all_dict["question"]
         question_classify_response = all_dict["question_classify_response"]
         question_retrieval_response = all_dict["question_retrieval_response"]
-        
+
         if len(question_classify_response) > 0:
             question_classify_template = f"""你在回答中体现以下内容\n\n{question_classify_response}"""
         else:
             question_classify_template = ""
-        
+
         if len(self.longest_common_substring(question,question_retrieval_response)) >=4:
             question_retrieval_template = f"""工作经历有以下内容: \n\n{question_retrieval_response}"""
         else:
             question_retrieval_template = ""
-        
+
         return f"{question_classify_template}\n\n{question_retrieval_template}\n\n"
 
     def prepare_question_classify_prompt(self):
@@ -259,8 +274,10 @@ if __name__ == "__main__":
     logging.info(f'LANGCHAIN_PROJECT: {os.getenv("LANGCHAIN_PROJECT", "未设置")}')
 
     url = "https://raw.githubusercontent.com/baiziyuandyufei/langchain-self-study-tutorial/main/jl.txt"
-    embedding_model_name = "nomic-ai/nomic-embed-text-v1.5"
-    chat_model_name = "accounts/fireworks/models/llama-v3-70b-instruct"
+    # embedding_model_name = "nomic-ai/nomic-embed-text-v1.5"
+    embedding_model_name = "BAAI/bge-large-zh-v1.5"
+    # chat_model_name = "accounts/fireworks/models/llama-v3-70b-instruct"
+    chat_model_name = "llama3-70b-8192"
     assistant = JobSearchAssistant(url, embedding_model_name, chat_model_name)
 
     # 人机交互界面
