@@ -62,10 +62,6 @@ class JobSearchAssistant:
             self.chat = ChatGroq(
                 temperature=0.3,
                 model=chat_model_name,
-                model_kwargs={
-                    "top":0.3
-                },
-                # api_key="" # Optional if not set as an environment variable
                 )
         else:
             self.chat = ChatFireworks(
