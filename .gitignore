@@ -4,3 +4,4 @@ __pycache__
 demos/db/db/*
 .vscode
 **/docs
+**/imgs
