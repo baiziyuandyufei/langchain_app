@@ -66,7 +66,7 @@ class HorrorStoryGenerator:
     
     def generate_story(self, input_text):
         content = self.chain.invoke({"input": input_text})
-        content = re.sub('\n+', '、\n', content)
+        content = re.sub('\n+', '\n', content)
         print(f"生成的故事======\n{content}")
         return content
     
