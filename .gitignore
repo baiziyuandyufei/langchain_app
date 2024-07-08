@@ -5,3 +5,5 @@ demos/db/db/*
 .vscode
 **/docs
 **/imgs
+stories/stories/*
+horror.db
